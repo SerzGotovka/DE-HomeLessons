@@ -11,10 +11,10 @@
 - Вывести, есть ли у пользователя доступ по введенным значениям
 """
 
-is_subscribed = bool(input("Вы подписаны на платнуб подписку. True\False: "))
+is_subscribed = bool(input("Вы подписаны на платнуб подписку. True/False: "))
 age = int(input("Введите ваш возраст: "))
-is_admin = bool(input("Вы администратор. True\False: "))
-is_blocked = bool(input("Ваш аккаунт заблокирован. True\False: "))
+is_admin = bool(input("Вы администратор. True/False: "))
+is_blocked = bool(input("Ваш аккаунт заблокирован. True/False: "))
 
 if is_subscribed and age>18 or is_admin and not is_blocked:
     print("У пользователя есть доступ к контенту")
