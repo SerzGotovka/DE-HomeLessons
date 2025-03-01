@@ -16,7 +16,7 @@ age = int(input("Введите ваш возраст: "))
 is_admin = bool(input("Вы администратор. True/False: "))
 is_blocked = bool(input("Ваш аккаунт заблокирован. True/False: "))
 
-if is_subscribed and age>18 or is_admin and not is_blocked:
+if not is_blocked and ((is_subscribed and age > 18) or is_admin):
     print("У пользователя есть доступ к контенту")
 else: 
     print("У пользователя нет доступа к контенту")
