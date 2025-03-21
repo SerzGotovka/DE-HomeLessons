@@ -8,34 +8,48 @@
 
 def read_file(filename: str) -> list:
     """Функция для чтения файла"""
-    with open(filename, "r", encoding="utf-8") as file:
-        content = file.readlines()
+    try:
+        with open(filename, "r", encoding="utf-8") as file:
+            content = file.readlines()
 
-        for line in content:
-            data = line.strip().split(",")
-            data_numb = list(map(lambda x: int(x), data))
+            for line in content:
+                data = line.strip().split(",")
+                data_numb = list(map(lambda x: int(x), data))
 
-            # print(data_numb)
-        return data_numb
+                
+            return data_numb
+    except FileNotFoundError:
+        print("Файл не найден!")
+        return []
+    except:
+        print("Ошибка при работе с файлом!")
 
 
 def even_odd_numbers(data: list) -> list:
     """Функиця для создания списков четных и нечетных чисел"""
-    even_list = [x for x in data if x % 2 == 0]
-    odd_list = [x for x in data if not x % 2 == 0]
-    # print(even_list, odd_list)
+    try:
+        even_list = [x for x in data if x % 2 == 0]
+        odd_list = [x for x in data if not x % 2 == 0]
+        # print(even_list, odd_list)
 
-    return even_list, odd_list
+        return even_list, odd_list
+    except:
+        print("Ошибка получения данных")
 
 
 def write_files(filename: str, data: list) -> None:
     """Функция для записи файлов"""
-    with open(filename, "w", encoding="utf-8") as file:
-        for item in data:
-            file.write(f"{str(item)}, ")
+    try:
+        with open(filename, "w", encoding="utf-8") as file:
+            for item in data:
+                file.write(f"{str(item)}, ")
+    except:
+        print("Ошибка с созданием файла!")
 
 
-data = read_file("HomeLesson11\example.txt")
-even_list, odd_list = even_odd_numbers(data)
-write_files("HomeLesson11\even_numb.txt", even_list)
-write_files("HomeLesson11\odd_numb.txt", odd_list)
+if __name__ == "__main__":
+    data = read_file("HomeLesson11/example.txt")
+    if data:  #! Проверяем, что данные были успешно прочитаны
+        even_list, odd_list = even_odd_numbers(data)
+        write_files("HomeLesson11/even_numb.txt", even_list)
+        write_files("HomeLesson11/odd_numb.txt", odd_list)
