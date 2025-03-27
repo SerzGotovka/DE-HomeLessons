@@ -14,24 +14,25 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from utils.scripts import read_file, write_files
 
 
-def even_odd_numbers(content: list) -> list:
+def even_odd_numbers(content: list) -> tuple:
     """Функция для создания списков четных и нечетных чисел"""
     try:
-        data_numb = []
+        even_list = []
+        odd_list = []
+        
         for line in content:
             data = line.strip().split(",")
-            data_numb.extend(
-                map(int, data)
-            )  # Преобразуем строки в числа и добавляем в список
-
-        even_list = [x for x in data_numb if x % 2 == 0]
-        odd_list = [x for x in data_numb if x % 2 != 0]
+            for number in map(int, data):
+                if number % 2 == 0:
+                    even_list.append(number)  
+                else:
+                    odd_list.append(number)  
 
         return even_list, odd_list
     except Exception as e:
         print(f"Ошибка получения данных: {e}")
         return [], []
-
+    
 
 if __name__ == "__main__":
     content = read_file("HomeLesson11/example.txt")
