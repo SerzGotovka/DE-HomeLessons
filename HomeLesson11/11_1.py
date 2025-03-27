@@ -17,5 +17,5 @@ def avg_values(list_numb: list) -> float:
     except TypeError:
         print("Введите числовые значения")
 
-
-avg_values([5,7,10])
+if __name__ == '__main__':
+    avg_values([5,7,10])
