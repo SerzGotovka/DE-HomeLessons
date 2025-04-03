@@ -48,7 +48,7 @@ CREATE TABLE registrations(
 	id INTEGER PRIMARY KEY AUTOINCREVENT,
 	id_student INTEGER,
 	id_course INTEGER,
-	date_registration DATETIME DEFAULT CURRENT TIMESTAMP,
+	date_registration TEXT DEFAULT CURRENT TIMESTAMP,
 	
 	FOREIGN KEY id_student REFERENCES students(id),
 	FOREIGN KEY id_course REFERENCES courses(id)
