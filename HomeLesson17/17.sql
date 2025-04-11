@@ -34,7 +34,7 @@ group by s.fare_conditions;
 select flight_id,
        min(amount) as min_amount,
        max(amount) as max_amount,
-       avg(amount) as avg_amount,
+       round(avg(amount)) as avg_amount,
        PERCENTILE_CONT(0.5) within group (order by amount), 
        array_agg(amount),
        (max(amount)- min(amount)) as difference_amount
