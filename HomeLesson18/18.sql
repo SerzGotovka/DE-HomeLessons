@@ -56,3 +56,11 @@ JOIN
 WHERE 
     f1.flight_id <> f2.flight_id  -- Исключаем пары одного и того же рейса
     AND ABS(EXTRACT(EPOCH FROM (f1.scheduled_departure - f2.scheduled_departure))) <= 3600;
+
+-- ИЛИ
+
+SELECT f1.flight_id AS flight1, f2.flight_id AS flight2, f1.departure_airport
+FROM bookings.flights f1
+JOIN bookings.flights f2 ON f1.departure_airport = f2.departure_airport
+               AND f1.flight_id <> f2.flight_id
+               AND ABS(EXTRACT(EPOCH FROM (f1.scheduled_departure - f2.scheduled_departure))) <= 3600;
