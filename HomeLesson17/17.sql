@@ -19,7 +19,11 @@ group by a.model;
 
 select s.fare_conditions,
        count(s.seat_no),
-       (round(count(s.seat_no)*100/SUM(COUNT(s.seat_no)) OVER ())) AS relations_classes
+       -- (round(count(s.seat_no)*100/SUM(COUNT(s.seat_no)) OVER ())) AS relations_classes
+       -- или
+       ROUND(COUNT(*) FILTER (WHERE fare_conditions = 'Economy') * 100.0 / COUNT(*), 2) AS economy_percent,
+       ROUND(COUNT(*) FILTER (WHERE fare_conditions = 'Business') * 100.0 / COUNT(*), 2) AS business_percent,
+       ROUND(COUNT(*) FILTER (WHERE fare_conditions = 'Comfort') * 100.0 / COUNT(*), 2) AS comfort_percent
 from bookings.seats s
 join bookings.aircrafts a on a.aircraft_code = s.aircraft_code
 group by s.fare_conditions;
