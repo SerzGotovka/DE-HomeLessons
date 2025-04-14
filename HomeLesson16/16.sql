@@ -77,8 +77,8 @@ SELECT
 		WHEN dickount_percent BETWEEN 11 AND 20 THEN '11%-20%'
 		WHEN dickount_percent BETWEEN 21 AND 30 THEN '21%-30%'
 		WHEN dickount_percent BETWEEN 31 AND 40 THEN '31%-40%'
-		WHEN dickount_percent BETWEEN 31 AND 40 THEN '41%-50%'
-		WHEN dickount_percent >= 50 THEN '> 50%'	
+		WHEN dickount_percent BETWEEN 41 AND 50 THEN '41%-50%'
+		WHEN dickount_percent > 50 THEN '> 50%'	
 	END AS discount_group,
 	count(*) AS count_discount,
 	MIN(dickount_percent) AS min_discount,
