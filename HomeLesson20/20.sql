@@ -38,3 +38,5 @@ BEGIN
         f.departure_airport, a.airport_name;
 END;
 $$ LANGUAGE plpgsql;
+
+SELECT * FROM get_flight_delays_by_airport('ABK')
