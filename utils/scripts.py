@@ -1,6 +1,7 @@
 import sqlite3
 import pandas as pd
 from typing import Dict
+import psycopg2
 
 def read_file(filename: str) -> list:
     """Функция для чтения файла"""
@@ -42,3 +43,13 @@ def load_data_from_db(db_path: str) -> Dict:
     except Exception as e:
         print(f"Ошибка при загрузке данных из базы: {e}")
     return dataframes
+
+
+def get_connection():
+    return psycopg2.connect(
+        host='localhost',
+        database='demo',
+        user='postgres',
+        password='postgres',
+        port=5432
+    )
