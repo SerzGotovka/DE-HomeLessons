@@ -1,15 +1,12 @@
-import psycopg2
 import pandas as pd
+import sys
+from pathlib import Path
 
 
-def get_connection():
-    return psycopg2.connect(
-        host='localhost',
-        database='demo',
-        user='postgres',
-        password='postgres',
-        port=5432
-    )
+root_dir = Path(__file__).parent.parent  
+sys.path.append(str(root_dir))
+
+from utils.scripts import get_connection
 
 """Задача 1. Экспорт расписания рейсов по конкретному маршруту.
 Нужно создать функцию на Python, которая выгружает в CSV-файл расписание рейсов между двумя городами (например, Москва и Санкт-Петербург). Функция должна включать:
