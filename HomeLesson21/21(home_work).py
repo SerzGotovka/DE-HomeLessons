@@ -1,6 +1,8 @@
 import pandas as pd
 import sys
 from pathlib import Path
+import psycopg2
+
 
 
 root_dir = Path(__file__).parent.parent  
@@ -32,7 +34,7 @@ def shedule_flights(filename:str, arrival_city:str, departure_city:str) -> None:
                 JOIN bookings.airports ad ON f.departure_airport = ad.airport_code
                 JOIN bookings.aircrafts ai ON f.aircraft_code  = ai.aircraft_code 
                 JOIN bookings.ticket_flights tf ON tf.flight_id = f.flight_id
-                WHERE aa.city = 'Москва' AND ad.city = 'Санкт-Петербург'
+                WHERE aa.city = %s AND ad.city = %s
                 GROUP BY f.flight_no, f.scheduled_arrival, f.scheduled_departure, ai.model;"""
             
             cursor.execute(query, (arrival_city, departure_city))
@@ -50,5 +52,76 @@ def shedule_flights(filename:str, arrival_city:str, departure_city:str) -> None:
             print(f'файл создан {filename}')
 
 
+"""Задача 2. Массовое обновление статусов рейсов
+Создать функцию для пакетного обновления статусов рейсов (например, "Задержан" или "Отменен"). Функция должна:
+- Принимать список рейсов и их новых статусов
+- Подтверждать количество обновленных записей
+- Обрабатывать ошибки (например, несуществующие рейсы)"""
+
+
+def update_status_flights(flight_no:list, new_status:str) -> None:
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cursor:
+        
+                query = """
+                    UPDATE bookings.flights
+                    SET status = %s
+                    WHERE flight_no = ANY (%s)
+                """
+                cursor.execute(query, (new_status, flight_no))
+                conn.commit()
+
+                print(f'Обновлено рейсов: {cursor.statusmessage}')
+
+    except psycopg2.OperationalError as e:
+        print(f'Ошибка подключения к базе данных: {e}')
+    except psycopg2.ProgrammingError as e:
+        print(f'Ошибка в SQL-запросе: {e}')  
+    except Exception as e:
+        print(f'Произошла ошибка: {e}')  
+
+
+"""Задача 3. Динамическое ценообразование
+Реализовать функцию, которая автоматически корректирует цены на билеты в зависимости от спроса:
+- Повышает цены на 10%, если продано >80% мест
+- Понижает на 5%, если продано <30% мест
+- Не изменяет цены бизнес-класса"""
+
+def dinamyc_ticket_update() -> None:
+    with get_connection() as conn:
+        with conn.cursor() as cursor:
+
+            query = """
+                WITH seat_stats AS (
+                    SELECT 
+                        tf.flight_id,
+                        tf.fare_conditions,
+                        ns.cnt_seat AS all_seats,
+                        COUNT(tf.ticket_no) AS seats_sold,
+                        (COUNT(tf.ticket_no) * 100.0 / ns.cnt_seat) AS sold_percentage
+                    FROM bookings.ticket_flights tf
+                    JOIN bookings.flights f ON f.flight_id = tf.flight_id
+                    JOIN bookings.numb_seat ns ON ns.aircraft_code = f.aircraft_code
+                    GROUP BY tf.flight_id, tf.fare_conditions, ns.cnt_seat
+                )
+                UPDATE bookings.ticket_flights
+                SET amount = CASE
+                    WHEN ss.fare_conditions = 'Business' THEN amount -- Цены бизнес-класса не изменяются
+                    WHEN ss.sold_percentage > 80 THEN amount * 1.10 -- Повышение на 10%
+                    WHEN ss.sold_percentage < 30 THEN amount * 0.95 -- Понижение на 5%
+                    ELSE amount -- В остальных случаях цена не меняется
+                END
+                FROM seat_stats ss
+                WHERE bookings.ticket_flights.flight_id = ss.flight_id
+                AND bookings.ticket_flights.fare_conditions = ss.fare_conditions;
+            """
+
+            cursor.execute(query,)
+            
+            print('Данный обновлены')
+
 if __name__ == '__main__':
-    shedule_flights('shedule_flights', 'Москва', 'Санкт-Петербург')
+    # shedule_flights('shedule_flights', 'Москва', 'Санкт-Петербург')
+    # update_status_flights(['PG0403', 'PG0404', 'PG040ы'], 'Cancelled')
+    dinamyc_ticket_update()
