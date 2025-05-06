@@ -2,6 +2,7 @@ import pandas as pd
 import sys
 from pathlib import Path
 import psycopg2
+import json
 
 
 
@@ -59,8 +60,20 @@ def shedule_flights(filename:str, arrival_city:str, departure_city:str) -> None:
 - Обрабатывать ошибки (например, несуществующие рейсы)"""
 
 
-def update_status_flights(flight_no:list, new_status:str) -> None:
+def update_status_flights(json_data: str) -> None:
     try:
+        data = json.loads(json_data)
+        
+        # Извлекаем значения из JSON
+        flight_no = data.get("flight_no")
+        new_status = data.get("new_status")
+
+        # Проверяем, что все необходимые данные присутствуют
+        if not isinstance(flight_no, list) or not flight_no:
+            raise ValueError("flight_no должен быть непустым списком.")
+        if not isinstance(new_status, str) or not new_status.strip():
+            raise ValueError("new_status должен быть непустой строкой.")
+        
         with get_connection() as conn:
             with conn.cursor() as cursor:
         
@@ -123,5 +136,6 @@ def dinamyc_ticket_update() -> None:
 
 if __name__ == '__main__':
     # shedule_flights('shedule_flights', 'Москва', 'Санкт-Петербург')
-    # update_status_flights(['PG0403', 'PG0404', 'PG040ы'], 'Cancelled')
-    dinamyc_ticket_update()
+    update_status_flights('{"flight_no": ["PG0402", "PG0222"], "new_status": "Scheduled"}')
+
+    # dinamyc_ticket_update()
