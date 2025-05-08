@@ -101,6 +101,15 @@ CREATE TABLE completed_homework (
     FOREIGN KEY (lesson_id) REFERENCES homework(id_lesson)
 );
 
+CREATE TABLE courses.homework_student(
+	id SERIAL,
+	id_student INT,
+    id_completed_homework INT,
+    PRIMARY KEY (id, id_student, completed_homework),
+    FOREIGN KEY (id_student) REFERENCES courses.student(id_student) ON DELETE CASCADE,
+    FOREIGN KEY (id_completed_homework) REFERENCES courses.completed_homework(id_completed_homework) ON DELETE CASCADE
+);
+
 
 CREATE TABLE grade(
 	grade_id INT PRIMARY KEY,
@@ -113,6 +122,8 @@ CREATE TABLE grade(
 );
 
 
+
+
 CREATE TABLE review (
     review_id INT PRIMARY KEY,
     student_id INT,
@@ -121,3 +132,4 @@ CREATE TABLE review (
     rating INT CHECK (rating BETWEEN 1 AND 5),
     FOREIGN KEY (student_id) REFERENCES student(id_student),
     FOREIGN KEY (course_id) REFERENCES course(id_course)
+);
