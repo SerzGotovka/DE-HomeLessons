@@ -1,73 +1,52 @@
 from airflow import DAG
-from airflow.providers.postgres.hooks.postgres import PostgresHook
-from airflow.operators.dummy import DummyOperator
 from airflow.operators.python import PythonOperator
 from datetime import datetime
 import openpyxl
 from utils.faker_user import generate_random_records, generate_random_sells
 
-
-def start_time_generation_files() -> str:
+def start_time_generation_files(**kwargs) -> str:
     """Функция получения времени генерации файлов"""
     start_generation = datetime.now().strftime("%Y.%m.%d_%H.%M.%S")
-    print(f"Время создания файла: {start_generation}")
     return start_generation
 
-
-date_start_geberation = start_time_generation_files()
-
-
-
-def generate_xlsx_users(path="/opt/airflow/dags/data/", filename="users.xlsx"):
+def generate_xlsx_users(path="/opt/airflow/dags/data/", filename="users.xlsx", date_generation=None):
     """Функция для сохранения сгенерированных данных о пользователе в xlsx"""
-
-    # Создаем новую книгу Excel
     workbook = openpyxl.Workbook()
     sheet = workbook.active
 
     data = generate_random_records()
-
-    # Записываем заголовки (если нужно)
     sheet.append(["Имя", "Фамилия", "Город"])
 
-    # Обработка каждой строки
     for record in data:
-        # Разделяем строку по запятой и преобразуем в список
         split_record = record.split(",")
-        # Добавляем запись в таблицу
         sheet.append(split_record)
 
-    # Сохраняем файл
-    workbook.save(f"{path}{date_start_geberation}_{filename}")
+    # Сохраняем файл с дата-именем
+    full_filename_xlsx = f"{path}{date_generation}_{filename}"
+    workbook.save(full_filename_xlsx)
     count_rows = workbook.active.max_row
-    full_filename_xlsx = f"{date_start_geberation}_{filename}"
-
-    print(f'Файл "{full_filename_xlsx}" успешно создан!')
 
     return count_rows, full_filename_xlsx
 
-
-def generate_txt_sells(path="/opt/airflow/dags/data/", filename_txt="sells.txt"):
-    full_filename_txt = f"{date_start_geberation}_{filename_txt}"
-    with open(f"{path}{full_filename_txt}", "w", encoding="utf-8") as file:  
+def generate_txt_sells(path="/opt/airflow/dags/data/", filename_txt="sells.txt", date_generation=None):
+    """Функция для сохранения сгенерированных данных о продажах в текстовый файл"""
+    full_filename_txt = f"{date_generation}_{filename_txt}"
+    
+    with open(f"{path}{full_filename_txt}", "w", encoding="utf-8") as file:
         data_sells = generate_random_sells()
         count_rows_txt = len(data_sells)
         for line in data_sells:
             file.write(f"{line[0]}, {line[1]}, {line[2]}\n")
 
-    print(f'Файл "{full_filename_txt}" успешно создан!')  
-
     return count_rows_txt, full_filename_txt
 
-
-def open_files_and_count_rows():
+def open_files_and_count_rows(date_generation):
     """Функция для открытия сгенерированных файлов и подсчета количества строк"""
+    count_rows_xlsx, full_filename_xlsx = generate_xlsx_users(date_generation=date_generation)
+    count_rows_txt, full_filename_txt = generate_txt_sells(date_generation=date_generation)
 
-    count_rows_xlsx, full_filename_xlsx = generate_xlsx_users()
-    count_rows_txt, full_filename_txt = generate_txt_sells()
     print(f"Количество строк в файле: {full_filename_xlsx}: {count_rows_xlsx}")
     print(f"Количество строк в файле: {full_filename_txt}: {count_rows_txt}")
-
 
 default_args = {
     "owner": "serzik",
@@ -75,29 +54,38 @@ default_args = {
 
 with DAG(
     "Generation_files",
-    description="Созадние файла xlsx с генерированными пользователями txt файла с генерированными продажами",
+    description="Создание файла xlsx с генерированными пользователями и txt файла с генерированными продажами",
     schedule_interval=None,
     start_date=datetime(2025, 6, 13),
 ) as dag:
 
+    # Генерация времени создания файлов
     time_generate_files_task = PythonOperator(
-        task_id="time_generate_files", python_callable=start_time_generation_files
+        task_id="time_generate_files", 
+        python_callable=start_time_generation_files,
+        do_xcom_push=True
     )
 
+    # Генерация файла Excel
     generate_xlsx_task = PythonOperator(
-        task_id="generate_xlsx_file", python_callable=generate_xlsx_users
+        task_id="generate_xlsx_file",
+        python_callable=generate_xlsx_users,
+        op_kwargs={'date_generation': "{{ task_instance.xcom_pull(task_ids='time_generate_files') }}"},
     )
 
+    # Генерация текстового файла
     generate_txt_task = PythonOperator(
-        task_id="generate_txt_file", python_callable=generate_txt_sells
+        task_id="generate_txt_file",
+        python_callable=generate_txt_sells,
+        op_kwargs={'date_generation': "{{ task_instance.xcom_pull(task_ids='time_generate_files') }}"},
     )
 
+    # Подсчет строк в файлах
     open_files_and_count_rows_task = PythonOperator(
-        task_id="open_files_and_count_rows", python_callable=open_files_and_count_rows
+        task_id="open_files_and_count_rows", 
+        python_callable=open_files_and_count_rows,
+        op_kwargs={'date_generation': "{{ task_instance.xcom_pull(task_ids='time_generate_files') }}"},
     )
 
-    (
-        time_generate_files_task 
-        >> [generate_xlsx_task, generate_txt_task]
-        >> open_files_and_count_rows_task
-    )
+    # Определение порядка выполнения задач
+    time_generate_files_task >> [generate_xlsx_task, generate_txt_task] >> open_files_and_count_rows_task
