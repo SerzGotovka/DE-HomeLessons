@@ -16,7 +16,6 @@ def start_time_generation_files() -> str:
 
 date_start_geberation = start_time_generation_files()
 
-# start_time_generation_files()
 
 
 def generate_xlsx_users(path="/opt/airflow/dags/data/", filename="users.xlsx"):
