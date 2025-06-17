@@ -47,16 +47,15 @@ def generate_xlsx_users(path="/opt/airflow/dags/data/", filename="users.xlsx"):
     return count_rows, full_filename_xlsx
 
 
-def generate_txt_sells(path="/opt/airflow/dags/data/", filename="sells.txt"):
-    with open(f"{path}{filename}", "w", encoding="utf-8") as file:
+def generate_txt_sells(path="/opt/airflow/dags/data/", filename_txt="sells.txt"):
+    full_filename_txt = f"{date_start_geberation}_{filename_txt}"
+    with open(f"{path}{full_filename_txt}", "w", encoding="utf-8") as file:  
         data_sells = generate_random_sells()
         count_rows_txt = len(data_sells)
         for line in data_sells:
-            print(line)
             file.write(f"{line[0]}, {line[1]}, {line[2]}\n")
 
-    full_filename_txt = f"{date_start_geberation}_{filename}"
-    print(f'Файл "{date_start_geberation}_{filename}" успешно создан!')
+    print(f'Файл "{full_filename_txt}" успешно создан!')  
 
     return count_rows_txt, full_filename_txt
 
@@ -98,7 +97,7 @@ with DAG(
     )
 
     (
-        time_generate_files_task
+        time_generate_files_task 
         >> [generate_xlsx_task, generate_txt_task]
         >> open_files_and_count_rows_task
     )
